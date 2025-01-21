@@ -1088,7 +1088,7 @@ int main1(int argc, const char * argv[]) {
 static double total_profile_time = 0.1;
 
 /// Profile sampler period in seconds (default 10ms).
-static double sample_period = 10; // 0.01s
+//static double sample_period = 10; // 0.01s
 
 static double get_timestamp(void) {
     struct timeval now;
@@ -1102,6 +1102,14 @@ static double get_timestamp(void) {
 // usage: kpc prog1 args
 int main(int argc, const char * argv[]) {
     int ret = 0;
+
+    if(argc < 3) {
+        printf("Usage: %s <seconds> command args\n", argv[0]);
+        return 1;
+    }
+
+    double sample_period = atof(argv[1]);
+    printf("sample_period: %f\n", sample_period);
 
     // load dylib
     if (!lib_init()) {
@@ -1232,11 +1240,15 @@ int main(int argc, const char * argv[]) {
     int target_pid = -1;
     // launch prog1 args
     {
-        const char *prog = argv[1];
+        const char *prog = argv[2];
         pid_t pid = fork();
         if (pid == 0) {
-            execvp(prog, (char *const *) (argv + 1));
+            execvp(prog, (char *const *) (argv + 2));
             exit(0);
+        }
+        else if(pid < 0) {
+            printf("Failed to fork %s\n", prog);
+            return 1;
         }
         target_pid = pid;
     }
